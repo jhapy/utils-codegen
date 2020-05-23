@@ -1,0 +1,72 @@
+package {{packageName}};
+
+import java.util.List;
+import javax.persistence.criteria.JoinType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.wannagoframework.baseserver.service.QueryService;
+import org.wannagoframework.commons.utils.HasLogger;
+
+{{#imports}}
+import {{this}};
+{{/imports}}
+
+@Service
+@Transactional(readOnly = true)
+public class {{className}} extends QueryService<{{modelClass}}> implements {{interfaceName}}, HasLogger {
+
+  private final {{repositoryClass}} repository;
+
+  public {{className}}( {{repositoryClass}} repository ) {
+    this.repository = repository;
+  }
+
+  @Override
+  public List<{{modelClass}}> findByCriteria({{searchCriteriaClass}} criteria) {
+    String loggerPrefix = getLoggerPrefix("findByCriteria");
+
+    logger().debug(loggerPrefix+"Criteria : {}", criteria);
+
+    final Specification<{{modelClass}}> specification = createSpecification(criteria);
+      return repository.findAll(specification);
+    }
+
+    @Override
+    public Page<{{modelClass}}> findByCriteria({{searchCriteriaClass}} criteria, Pageable page) {
+      String loggerPrefix = getLoggerPrefix("findByCriteria");
+
+      logger().debug(loggerPrefix+"Criteria : {}, page: {}", criteria, page);
+
+      final Specification<{{modelClass}}> specification = createSpecification(criteria);
+      return repository.findAll(specification, page);
+    }
+
+    @Override
+    public long countByCriteria({{searchCriteriaClass}} criteria) {
+      String loggerPrefix = getLoggerPrefix("countByCriteria");
+
+      logger().debug(loggerPrefix+"Criteria : {}, page: {}", criteria);
+
+      final Specification<{{modelClass}}> specification = createSpecification(criteria);
+      return repository.count(specification);
+    }
+
+    protected Specification<{{modelClass}}> createSpecification({{searchCriteriaClass}} criteria) {
+      Specification<{{modelClass}}> specification = Specification.where(null);
+      if (criteria != null) {
+{{#attributeList}}
+        if (criteria.{{getter}}() != null) {
+          {{#if isJoin}}
+          specification = specification.and({{buildSpecification}}(criteria.{{getter}}(), root -> root.join({{metaModelClass}}.{{name}}, JoinType.LEFT).get({{targetMetaModelClass}}.id)));
+          {{else}}
+          specification = specification.and({{buildSpecification}}(criteria.{{getter}}(), {{metaModelClass}}.{{name}}));
+          {{/if}}
+        }
+{{/attributeList}}
+      }
+      return specification;
+    }
+}

@@ -1,0 +1,17 @@
+package {{packageName}};
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.wannagoframework.dto.domain.BaseEntityLongId;
+
+{{#imports}}
+import {{this}};
+{{/imports}}
+
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class {{className}} extends BaseEntityLongId {
+{{#attributeList}}
+  private {{{type}}} {{name}};
+{{/attributeList}}
+}

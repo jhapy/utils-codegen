@@ -1,0 +1,71 @@
+package {{packageName}};
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
+import org.wannagoframework.commons.utils.HasLogger;
+import org.wannagoframework.commons.utils.OrikaBeanMapper;
+import ma.glasnost.orika.CustomMapper;
+import ma.glasnost.orika.MappingContext;
+
+{{#imports}}
+import {{this}};
+{{/imports}}
+
+@Component
+public class {{className}} implements HasLogger {
+
+{{#repositories}}
+  public final {{interfaceName}} {{interfaceAttribute}};
+{{/repositories}}
+
+  private final OrikaBeanMapper orikaBeanMapper;
+
+  public {{className}}(OrikaBeanMapper orikaBeanMapper{{#repositories}}, {{interfaceName}} {{interfaceAttribute}}{{/repositories}}) {
+    this.orikaBeanMapper = orikaBeanMapper;
+{{#repositories}}
+    this.{{interfaceAttribute}} = {{interfaceAttribute}};
+{{/repositories}}
+  }
+
+  @Bean
+  public void {{converterFunction}}() {
+{{#complexeMapping}}
+    orikaBeanMapper
+      .getClassMapBuilder({{modelClass}}.class, {{dtoClass}}.class)
+      .byDefault(){{#attributesExclusionList}}.exclude({{this}}){{/attributesExclusionList}}.customize(
+        new CustomMapper<{{modelClass}}, {{dtoClass}}>() {
+          @Override
+          public void mapAtoB({{modelClass}} src, {{dtoClass}} dst, MappingContext context) {
+{{#stringListAttributes}}
+            if (StringUtils.isNotBlank(src.get{{attributeName}}Ids())) {
+              dst.set{{attributeName}}Ids(src.get{{attributeName}}Ids().split(","));
+            }
+{{/stringListAttributes}}
+{{#attributes}}
+            if (src.get{{attributeName}}() != null) {
+              dst.set{{attributeName}}Id(src.get{{attributeName}}().getId());
+            }
+{{/attributes}}
+          }
+
+          @Override
+          public void mapBtoA({{dtoClass}} src, {{modelClass}} dst, MappingContext context) {
+{{#stringListAttributes}}
+            if (src.get{{attributeName}}Ids() != null && src.get{{attributeName}}Ids().length > 0) {
+              dst.set{{attributeName}}Ids(StringUtils.join(src.get{{attributeName}}Ids(), ","));
+            }
+{{/stringListAttributes}}
+{{#attributes}}
+            if (src.get{{attributeName}}Id() != null) {
+              {{repositoryInterface}}.findById(src.get{{attributeName}}Id()).ifPresent(dst::set{{attributeName}});
+            }
+{{/attributes}}
+          }
+      }).register();
+{{/complexeMapping}}
+
+{{#simpleMapping}}
+      orikaBeanMapper.addMapper({{modelClass}}.class, {{dtoClass}}.class);
+{{/simpleMapping}}
+  }
+}

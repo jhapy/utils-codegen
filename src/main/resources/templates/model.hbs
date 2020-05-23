@@ -1,0 +1,42 @@
+package {{packageName}};
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.javers.core.metamodel.annotation.ShallowReference;
+import org.wannagoframework.baseserver.domain.relationaldb.BaseEntity;
+
+{{#imports}}
+import {{this}};
+{{/imports}}
+
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
+public class {{className}} extends BaseEntity {
+{{#attributeList}}
+  {{~#if isJoin}}
+
+  @ShallowReference
+  {{joinType}}
+  @JoinColumn(name = "{{joinColumn}}"{{#nullable}},nullable = false{{/nullable}})
+  {{~else}}
+  {{^nullable}}
+
+  @Column(nullable = {{nullable}}){{/nullable}}{{/if}}
+  {{~#converter}}
+
+  @Convert(converter = {{converter}}.class){{/converter}}
+  {{~#isLob}}
+
+  @Lob{{/isLob}}
+  {{~#isEnum}}
+
+  @Enumerated(EnumType.STRING){{/isEnum}}
+  private {{{type}}} {{name}};
+{{/attributeList}}
+}

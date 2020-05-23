@@ -1,0 +1,12 @@
+package {{packageName}};
+
+import org.springframework.stereotype.Repository;
+import org.wannagoframework.baseserver.repository.relationaldb.BaseRepository;
+
+{{#imports}}
+import {{this}};
+{{/imports}}
+
+@Repository
+public interface {{interfaceName}} extends BaseRepository<{{modelClass}}> {
+}

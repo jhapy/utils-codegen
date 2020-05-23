@@ -1,0 +1,20 @@
+package {{packageName}};
+
+import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.wannagoframework.baseserver.service.CrudRelationalService;
+import org.wannagoframework.commons.utils.HasLogger;
+
+{{#imports}}
+import {{this}};
+{{/imports}}
+
+public interface {{interfaceName}} extends HasLogger {
+
+  List<{{modelClass}}> findByCriteria({{searchCriteriaClass}} criteria);
+
+  Page<{{modelClass}}> findByCriteria({{searchCriteriaClass}} criteria, Pageable page);
+
+  long countByCriteria({{searchCriteriaClass}} criteria);
+}

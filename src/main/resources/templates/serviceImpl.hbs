@@ -1,0 +1,41 @@
+package {{packageName}};
+
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.wannagoframework.commons.utils.HasLogger;
+
+{{#imports}}
+import {{this}};
+{{/imports}}
+
+@Service
+@Transactional(readOnly = true)
+public class {{className}} implements {{interfaceName}}, HasLogger {
+
+  {{#repositoryClass}}
+  private final {{this}} repository;
+
+  public {{className}}( {{this}} repository ) {
+    this.repository = repository;
+  }
+
+  @Override
+  public JpaRepository<{{modelClass}}, Long> getRepository() {
+    return repository;
+  }
+  {{/repositoryClass}}
+
+{{#operations}}
+  {{~#isTransactional}}
+  @Transactional
+  {{/isTransactional}}
+  public {{{returnType}}} {{name}}({{{parameters}}}) {
+    {{#hasReturn}}
+    return null;
+    {{/hasReturn}}
+  }
+
+{{/operations}}
+}

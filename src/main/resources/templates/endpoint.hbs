@@ -1,0 +1,153 @@
+package {{packageName}};
+
+import java.util.List;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.wannagoframework.commons.endpoint.BaseEndpoint;
+import org.wannagoframework.commons.utils.OrikaBeanMapper;
+import org.wannagoframework.dto.serviceQuery.BaseRemoteQuery;
+import org.wannagoframework.dto.serviceQuery.ServiceResult;
+import org.wannagoframework.dto.serviceQuery.generic.SearchQuery;
+import org.wannagoframework.dto.serviceQuery.generic.CountQuery;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.wannagoframework.dto.serviceQuery.generic.GetByIdQuery;
+import org.wannagoframework.dto.serviceQuery.generic.SaveQuery;
+import org.wannagoframework.dto.serviceQuery.generic.DeleteByIdQuery;
+
+{{#imports}}
+import {{this}};
+{{/imports}}
+
+@RestController
+@RequestMapping("/{{serviceName}}")
+public class {{className}} extends BaseEndpoint {
+  {{#searchServiceClass}}
+  private final {{this}} searchService;
+  {{/searchServiceClass}}
+  {{#serviceClass}}
+  private final {{serviceClass}} service;
+  {{/serviceClass}}
+
+  public {{className}}({{#serviceClass}}{{serviceClass}} service,{{/serviceClass}}{{#searchServiceClass}} {{this}} searchService,{{/searchServiceClass}}
+    @Qualifier("orikaBeanMapper") OrikaBeanMapper mapperFacade) {
+    super(mapperFacade);
+{{#serviceClass}}
+    this.service = service;
+{{/serviceClass}}
+{{#searchServiceClass}}
+    this.searchService = searchService;
+{{/searchServiceClass}}
+  }
+
+  {{~#searchServiceClass}}
+  @PreAuthorize("#oauth2.clientHasAnyRole('{{readingRole}}','{{writingRole}}')")
+  @PostMapping(value = "/findAnyMatching")
+  public ResponseEntity<ServiceResult> findAnyMatching(@RequestBody SearchQuery<{{criteriaClass}}> query) {
+    String loggerPrefix = getLoggerPrefix("findAnyMatching");
+    try {
+      Page<{{modelClass}}> result = searchService.findByCriteria(query.getCriteria(), mapperFacade.map(query.getPageable(), Pageable.class, getOrikaContext(query)));
+      return handleResult(loggerPrefix, mapperFacade.map(result, org.wannagoframework.dto.utils.Page.class, getOrikaContext(query)));
+    } catch (Throwable t) {
+        return handleResult(loggerPrefix, t);
+    }
+  }
+
+  @PreAuthorize("#oauth2.clientHasAnyRole('{{readingRole}}','{{writingRole}}')")
+  @PostMapping(value = "/findAnyMatchingNoPaging")
+  public ResponseEntity<ServiceResult> findAnyMatchingNoPaging(@RequestBody SearchQuery<{{criteriaClass}}> query) {
+    String loggerPrefix = getLoggerPrefix("findAnyMatching");
+    try {
+      List<{{modelClass}}> result = searchService.findByCriteria(query.getCriteria());
+      return handleResult(loggerPrefix, mapperFacade.map(result, org.wannagoframework.dto.utils.Page.class, getOrikaContext(query)));
+    } catch (Throwable t) {
+      return handleResult(loggerPrefix, t);
+    }
+  }
+
+  @PreAuthorize("#oauth2.clientHasAnyRole('{{readingRole}}','{{writingRole}}')")
+  @PostMapping(value = "/countAnyMatching")
+  public ResponseEntity<ServiceResult> countAnyMatching(@RequestBody CountQuery<{{criteriaClass}}> query) {
+    String loggerPrefix = getLoggerPrefix("countAnyMatching");
+    try {
+      return handleResult(loggerPrefix, searchService.countByCriteria(query.getCriteria()));
+    } catch (Throwable t) {
+      return handleResult(loggerPrefix, t);
+    }
+  }
+  {{/searchServiceClass}}
+
+  {{~#modelClass}}
+  @PreAuthorize("#oauth2.clientHasAnyRole('{{readingRole}}','{{writingRole}}')")
+  @PostMapping(value = "/getAll")
+  public ResponseEntity<ServiceResult> getAll(@RequestBody BaseRemoteQuery query) {
+    String loggerPrefix = getLoggerPrefix("getAll");
+    try {
+      Iterable<{{modelClass}}> result = service.findAll();
+      return handleResult(loggerPrefix, mapperFacade.mapAsList(result, {{dtoClass}}.class, getOrikaContext(query)));
+    } catch (Throwable t) {
+      return handleResult(loggerPrefix, t);
+    }
+  }
+
+  @PreAuthorize("#oauth2.clientHasAnyRole('{{readingRole}}','{{writingRole}}')")
+  @PostMapping(value = "/getById")
+  public ResponseEntity<ServiceResult> getById(@RequestBody GetByIdQuery query) {
+    String loggerPrefix = getLoggerPrefix("getById");
+    try {
+      return handleResult(loggerPrefix, mapperFacade.map(service
+            .load(query.getId()), {{dtoClass}}.class,
+              getOrikaContext(query)));
+    } catch (Throwable t) {
+      return handleResult(loggerPrefix, t);
+    }
+  }
+
+  @PreAuthorize("#oauth2.clientHasRole('{{writingRole}}')")
+  @PostMapping(value = "/save")
+  public ResponseEntity<ServiceResult> save( @RequestBody SaveQuery<{{dtoClass}}> query) {
+    String loggerPrefix = getLoggerPrefix("save");
+    try {
+      return handleResult(loggerPrefix, mapperFacade.map(service
+        .save(mapperFacade
+          .map(query.getEntity(), {{modelClass}}.class, getOrikaContext(query))),
+            {{dtoClass}}.class, getOrikaContext(query)));
+    } catch (Throwable t) {
+      return handleResult(loggerPrefix, t);
+    }
+  }
+
+  @PreAuthorize("#oauth2.clientHasRole('{{writingRole}}')")
+  @PostMapping(value = "/delete")
+  public ResponseEntity<ServiceResult> delete(@RequestBody DeleteByIdQuery query) {
+    String loggerPrefix = getLoggerPrefix("delete");
+    try {
+      service.delete(query.getId());
+      return handleResult(loggerPrefix);
+    } catch (Throwable t) {
+      return handleResult(loggerPrefix, t);
+    }
+  }
+  {{/modelClass}}
+
+{{#endpointOperations}}
+
+  //@PreAuthorize("#oauth2.clientHasRole('ROLE_ACCOUNTING_WRITE')")
+  @PostMapping(value = "/{{operationPath}}")
+  public ResponseEntity<ServiceResult> {{name}}(@RequestBody {{operationQuery}} query) {
+    String loggerPrefix = getLoggerPrefix("{{name}}");
+    try {
+      {{#serviceReturn}}{{{serviceReturn}}} = {{/serviceReturn}}service.{{name}}({{{serviceParameters}}});
+      return {{endpointReturn}};
+    } catch (Throwable t) {
+      return handleResult(loggerPrefix, t);
+    }
+  }
+{{/endpointOperations}}
+}

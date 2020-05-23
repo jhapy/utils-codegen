@@ -1,0 +1,39 @@
+package {{packageName}};
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import org.wannagoframework.dto.searchCriteria.BaseCriteria;
+import org.wannagoframework.dto.searchCriteria.filter.*;
+
+{{#imports}}
+import {{this}};
+{{/imports}}
+
+@Data
+@SuperBuilder(toBuilder = true)
+@NoArgsConstructor
+public class {{className}} extends BaseCriteria {
+{{#filterAttributeList}}
+  @AllArgsConstructor
+  @Builder(toBuilder = true)
+  public static class {{name}} extends Filter<{{relatedEnum}}> {
+
+    @Override
+    public {{name}} copy() {
+      return this.toBuilder().build();
+    }
+  }
+{{/filterAttributeList}}
+
+{{#attributeList}}
+  private {{{type}}} {{name}};
+{{/attributeList}}
+
+  @Override
+  public {{className}} copy() {
+    return this.toBuilder().build();
+  }
+}

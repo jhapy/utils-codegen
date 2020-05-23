@@ -1,0 +1,20 @@
+package {{packageName}};
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.wannagoframework.dto.serviceQuery.BaseRemoteQuery;
+
+{{~#imports}}
+import {{this}};
+{{/imports}}
+
+{{^imports}}
+
+{{/imports}}
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class {{className}} extends BaseRemoteQuery {
+{{#attributeList}}
+  private {{{type}}} {{name}};
+{{/attributeList}}
+}
