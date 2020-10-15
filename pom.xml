@@ -19,6 +19,7 @@
     <logback.version>1.2.3</logback.version>
     <commons-lang.version>3.9</commons-lang.version>
     <handlebars.version>4.1.2</handlebars.version>
+    <lombok.version>1.18.14</lombok.version>
   </properties>
 
   <dependencies>
@@ -50,7 +51,7 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.12</version>
+      <version>${lombok.version}</version>
     </dependency>
   </dependencies>
 
