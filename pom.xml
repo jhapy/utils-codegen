@@ -20,7 +20,7 @@
     <logback.version>1.2.3</logback.version>
     <commons-lang.version>3.9</commons-lang.version>
     <handlebars.version>4.1.2</handlebars.version>
-    <lombok.version>1.18.18</lombok.version>
+    <lombok.version>1.18.20</lombok.version>
   </properties>
 
   <dependencies>
